@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Student Understanding Tracker</title>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <!-- Setup Screen -->
+  <div id="setup-screen" class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
+    <h1 class="text-2xl font-bold mb-4">Lesson Setup</h1>
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Lesson Title</label>
+      <input id="lesson-title" type="text" class="w-full border rounded p-2" placeholder="Enter lesson title" />
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Topic</label>
+      <input id="lesson-topic" type="text" class="w-full border rounded p-2" placeholder="Enter topic" />
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Student Names (comma-separated)</label>
+      <textarea id="student-names" class="w-full border rounded p-2" rows="3" placeholder="Alice, Bob, Charlie"></textarea>
+    </div>
+    <button id="begin-btn" class="bg-blue-500 text-white rounded-2xl px-4 py-2 shadow hover:bg-blue-600">Begin Lesson</button>
+  </div>
+
+  <!-- Tracking Screen -->
+  <div id="tracking-screen" class="hidden">
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <h2 id="display-title" class="text-xl font-semibold"></h2>
+        <p id="display-topic" class="text-gray-600"></p>
+      </div>
+      <button id="reset-btn" class="bg-red-500 text-white rounded-2xl px-3 py-1 hover:bg-red-600">Reset</button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <h3 class="text-lg font-medium mb-2">Got It 👍</h3>
+        <div id="col-gotIt" class="space-y-2"></div>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium mb-2">Learning 🤔</h3>
+        <div id="col-learning" class="space-y-2"></div>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium mb-2">Doesn't Understand 👎</h3>
+        <div id="col-no" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const setupScreen = document.getElementById('setup-screen');
+    const trackingScreen = document.getElementById('tracking-screen');
+    const beginBtn = document.getElementById('begin-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const displayTitle = document.getElementById('display-title');
+    const displayTopic = document.getElementById('display-topic');
+
+    let students = [];
+
+    function renderColumns() {
+      ['gotIt', 'learning', 'no'].forEach(status => {
+        const col = document.getElementById('col-' + status);
+        col.innerHTML = '';
+      });
+      students.forEach((s, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow p-2 flex items-center justify-between';
+        card.innerHTML = `
+          <span>${s.name}</span>
+          <div class="space-x-1">
+            <button title="Got It" class="px-2 py-1 rounded hover:bg-green-100" data-action="gotIt" data-index="${idx}">👍</button>
+            <button title="Learning" class="px-2 py-1 rounded hover:bg-yellow-100" data-action="learning" data-index="${idx}">🤔</button>
+            <button title="Doesn't Understand" class="px-2 py-1 rounded hover:bg-red-100" data-action="no" data-index="${idx}">👎</button>
+            <button title="Notes" class="px-2 py-1 rounded hover:bg-gray-200" data-action="notes" data-index="${idx}">✏️</button>
+          </div>
+        `;
+        // Append card to correct column
+        document.getElementById('col-' + s.status).appendChild(card);
+
+        // If notes open, show below
+        if (s.showNotes) {
+          const noteArea = document.createElement('div');
+          noteArea.className = 'bg-gray-50 rounded p-2 mt-1';
+          noteArea.innerHTML = `
+            <textarea class="w-full border rounded p-1" rows="2">${s.notes || ''}</textarea>
+            <button class="mt-1 bg-blue-500 text-white rounded px-2 py-1" data-action="saveNotes" data-index="${idx}">Save</button>
+          `;
+          document.getElementById('col-' + s.status).appendChild(noteArea);
+        }
+      });
+    }
+
+    // Event delegation for student actions
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn || !btn.dataset.action) return;
+      const action = btn.dataset.action;
+      const idx = btn.dataset.index;
+      if (action === 'notes') {
+        students[idx].showNotes = !students[idx].showNotes;
+      } else if (action === 'saveNotes') {
+        const textarea = btn.previousElementSibling;
+        students[idx].notes = textarea.value;
+        students[idx].showNotes = false;
+      } else {
+        students[idx].status = action;
+        students[idx].showNotes = false;
+      }
+      renderColumns();
+    });
+
+    beginBtn.addEventListener('click', () => {
+      const title = document.getElementById('lesson-title').value.trim();
+      const topic = document.getElementById('lesson-topic').value.trim();
+      const namesRaw = document.getElementById('student-names').value.trim();
+      if (!namesRaw) return;
+      const names = namesRaw.split(',').map(n => n.trim()).filter(n => n);
+      students = names.map(n => ({ name: n, status: 'learning', notes: '', showNotes: false }));
+      displayTitle.textContent = title;
+      displayTopic.textContent = topic;
+      setupScreen.classList.add('hidden');
+      trackingScreen.classList.remove('hidden');
+      renderColumns();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      // Reset to setup
+      setupScreen.classList.remove('hidden');
+      trackingScreen.classList.add('hidden');
+      document.getElementById('lesson-title').value = '';
+      document.getElementById('lesson-topic').value = '';
+      document.getElementById('student-names').value = '';
+      students = [];
+    });
+  </script>
+</body>
+</html>
