@@ -6,46 +6,46 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <title>Student Understanding Tracker</title>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
+<body class="bg-gray-100 min-h-screen p-6 font-sans">
   <!-- Setup Screen -->
-  <div id="setup-screen" class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
-    <h1 class="text-2xl font-bold mb-4">Lesson Setup</h1>
-    <div class="mb-4">
-      <label class="block font-medium mb-1">Lesson Title</label>
-      <input id="lesson-title" type="text" class="w-full border rounded p-2" placeholder="Enter lesson title" />
+  <div id="setup-screen" class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-3xl font-semibold text-indigo-800 mb-6">Lesson Setup</h1>
+    <div class="mb-5">
+      <label class="block font-medium text-indigo-600 mb-2">Lesson Title</label>
+      <input id="lesson-title" type="text" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter lesson title" />
     </div>
-    <div class="mb-4">
-      <label class="block font-medium mb-1">Topic</label>
-      <input id="lesson-topic" type="text" class="w-full border rounded p-2" placeholder="Enter topic" />
+    <div class="mb-5">
+      <label class="block font-medium text-indigo-600 mb-2">Topic</label>
+      <input id="lesson-topic" type="text" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter topic" />
     </div>
-    <div class="mb-4">
-      <label class="block font-medium mb-1">Student Names (comma-separated)</label>
-      <textarea id="student-names" class="w-full border rounded p-2" rows="3" placeholder="Alice, Bob, Charlie"></textarea>
+    <div class="mb-6">
+      <label class="block font-medium text-indigo-600 mb-2">Student Names (comma-separated)</label>
+      <textarea id="student-names" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="3" placeholder="Alice, Bob, Charlie"></textarea>
     </div>
-    <button id="begin-btn" class="bg-blue-500 text-white rounded-2xl px-4 py-2 shadow hover:bg-blue-600">Begin Lesson</button>
+    <button id="begin-btn" class="w-full bg-indigo-600 text-white rounded-md py-3 font-medium shadow hover:bg-indigo-700 transition">Begin Lesson</button>
   </div>
 
   <!-- Tracking Screen -->
   <div id="tracking-screen" class="hidden">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-8 flex items-center justify-between">
       <div>
-        <h2 id="display-title" class="text-xl font-semibold"></h2>
+        <h2 id="display-title" class="text-2xl font-semibold text-gray-800"></h2>
         <p id="display-topic" class="text-gray-600"></p>
       </div>
-      <button id="reset-btn" class="bg-red-500 text-white rounded-2xl px-3 py-1 hover:bg-red-600">Reset</button>
+      <button id="reset-btn" class="bg-gray-300 text-gray-800 rounded-md px-4 py-2 font-medium hover:bg-gray-400 transition">Reset</button>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
-        <h3 class="text-lg font-medium mb-2">Got It 👍</h3>
-        <div id="col-gotIt" class="space-y-2"></div>
+        <h3 class="text-lg font-medium text-gray-700 mb-3">Got It 👍</h3>
+        <div id="col-gotIt" class="space-y-4"></div>
       </div>
       <div>
-        <h3 class="text-lg font-medium mb-2">Learning 🤔</h3>
-        <div id="col-learning" class="space-y-2"></div>
+        <h3 class="text-lg font-medium text-gray-700 mb-3">Learning 🤔</h3>
+        <div id="col-learning" class="space-y-4"></div>
       </div>
       <div>
-        <h3 class="text-lg font-medium mb-2">Doesn't Understand 👎</h3>
-        <div id="col-no" class="space-y-2"></div>
+        <h3 class="text-lg font-medium text-gray-700 mb-3">Doesn't Understand 👎</h3>
+        <div id="col-no" class="space-y-4"></div>
       </div>
     </div>
   </div>
@@ -62,52 +62,58 @@
 
     function renderColumns() {
       ['gotIt', 'learning', 'no'].forEach(status => {
-        const col = document.getElementById('col-' + status);
-        col.innerHTML = '';
+        document.getElementById('col-' + status).innerHTML = '';
       });
       students.forEach((s, idx) => {
+        let bgClass;
+        if (s.status === 'gotIt') bgClass = 'bg-green-50 border border-green-200';
+        else if (s.status === 'learning') bgClass = 'bg-white border border-gray-200';
+        else bgClass = 'bg-red-50 border border-red-200';
+
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow p-2 flex items-center justify-between';
+        card.className = `${bgClass} rounded-lg p-4 flex items-center justify-between`;
+
+        const noteIcon = s.notes ? '<span title="Has notes" class="text-gray-500">📝</span>' : '';
+
         card.innerHTML = `
-          <span>${s.name}</span>
-          <div class="space-x-1">
-            <button title="Got It" class="px-2 py-1 rounded hover:bg-green-100" data-action="gotIt" data-index="${idx}">👍</button>
-            <button title="Learning" class="px-2 py-1 rounded hover:bg-yellow-100" data-action="learning" data-index="${idx}">🤔</button>
-            <button title="Doesn't Understand" class="px-2 py-1 rounded hover:bg-red-100" data-action="no" data-index="${idx}">👎</button>
-            <button title="Notes" class="px-2 py-1 rounded hover:bg-gray-200" data-action="notes" data-index="${idx}">✏️</button>
+          <div class="flex items-center space-x-2">
+            <span class="text-gray-800 font-medium">${s.name}</span>
+            ${noteIcon}
+          </div>
+          <div class="flex space-x-2">
+            <button title="Got It" class="px-3 py-1 rounded-md hover:bg-green-100 transition" data-action="gotIt" data-index="${idx}">👍</button>
+            <button title="Learning" class="px-3 py-1 rounded-md hover:bg-gray-100 transition" data-action="learning" data-index="${idx}">🤔</button>
+            <button title="Doesn't Understand" class="px-3 py-1 rounded-md hover:bg-red-100 transition" data-action="no" data-index="${idx}">👎</button>
+            <button title="Notes" class="px-3 py-1 rounded-md hover:bg-gray-100 transition" data-action="notes" data-index="${idx}">✏️</button>
           </div>
         `;
-        // Append card to correct column
         document.getElementById('col-' + s.status).appendChild(card);
 
-        // If notes open, show below
         if (s.showNotes) {
           const noteArea = document.createElement('div');
-          noteArea.className = 'bg-gray-50 rounded p-2 mt-1';
+          noteArea.className = 'bg-white rounded-lg p-4 mt-3 border border-gray-200';
           noteArea.innerHTML = `
-            <textarea class="w-full border rounded p-1" rows="2">${s.notes || ''}</textarea>
-            <button class="mt-1 bg-blue-500 text-white rounded px-2 py-1" data-action="saveNotes" data-index="${idx}">Save</button>
+            <textarea class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="4">${s.notes || ''}</textarea>
+            <button class="mt-3 bg-indigo-600 text-white rounded-md px-4 py-2 font-medium hover:bg-indigo-700 transition" data-action="saveNotes" data-index="${idx}">Save</button>
           `;
           document.getElementById('col-' + s.status).appendChild(noteArea);
         }
       });
     }
 
-    // Event delegation for student actions
     document.addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn || !btn.dataset.action) return;
-      const action = btn.dataset.action;
-      const idx = btn.dataset.index;
+      const { action, index } = btn.dataset;
       if (action === 'notes') {
-        students[idx].showNotes = !students[idx].showNotes;
+        students[index].showNotes = !students[index].showNotes;
       } else if (action === 'saveNotes') {
         const textarea = btn.previousElementSibling;
-        students[idx].notes = textarea.value;
-        students[idx].showNotes = false;
+        students[index].notes = textarea.value;
+        students[index].showNotes = false;
       } else {
-        students[idx].status = action;
-        students[idx].showNotes = false;
+        students[index].status = action;
+        students[index].showNotes = false;
       }
       renderColumns();
     });
@@ -127,7 +133,6 @@
     });
 
     resetBtn.addEventListener('click', () => {
-      // Reset to setup
       setupScreen.classList.remove('hidden');
       trackingScreen.classList.add('hidden');
       document.getElementById('lesson-title').value = '';
